@@ -12,7 +12,7 @@ export class Modal extends React.Component<Props, {}> {
         return null
 
       return (
-        <div>
+        <div id="popup">
           <div className="modal">
             {this.props.children}
           </div>

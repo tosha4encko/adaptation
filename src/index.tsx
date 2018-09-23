@@ -6,9 +6,8 @@ import {LayOut} from './layout/'
 import './scss/base.scss'
 
 ReactDOM.render(
-
 	<div>
-   		<LayOut/> 
-    </div>,
-    document.getElementById("book")
+ 		<LayOut/> 
+  </div>,
+  document.getElementById("book")
 );

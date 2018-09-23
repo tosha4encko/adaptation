@@ -5,19 +5,19 @@ import {ListItem} from '../ListItem'
 export interface List {void}
 export interface Props {
 	profile : {
-		first_name: string;
-		last_name:  string;
-		city_code:  string;
-		phone:  string;
-		mail: string;
-		image_url:  string;
-		post:  string;
-		subdivisions:  string;
-		latitude: number;
-    longitude: number;
-	}[],
+    properties: {
+      first_name: string;
+      last_name: string;
+      city_code: string;
+      phone: string;
+      mail: string;
+      post: string;
+      subdivisions: string;
+      image: string;
+    }
+  }[];
 	sortableField?: string;
-	addFeatures?: any;
+	openModalCard?: any;
 }
 export class List extends React.Component<Props> {
 	constructor(Props){
@@ -42,7 +42,7 @@ export class List extends React.Component<Props> {
 			<div>
 			    {profiles.map((profile, index) => (
 					<div key={index}>
-						<ListItem profile={profile} addFeatures={this.props.addFeatures}/>
+						<ListItem profile={profile} openModalCard={this.props.openModalCard}/>
 					</div>
 				))}
 			</div>

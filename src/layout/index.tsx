@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {List, SearchForm, ImportForm, Map, Modal} from '../components/'
+import {List, SearchForm, ImportForm, Map, Modal, ObjectCard} from '../components/'
 
 import olMap from 'ol/Map.js';
 import View from 'ol/View.js';
@@ -17,33 +17,33 @@ import Style from 'ol/style/Style'
 import VectorSource from 'ol/source/Vector.js';
 import {Vector as VectorLayer} from 'ol/layer.js';
 import olCollections from 'ol/Collection';
+import GeoJSON from 'ol/format/GeoJSON.js';
+
+import axios from 'axios'
+
+interface Profile {
+	first_name: string;
+	last_name: string;
+	city_code: string;
+	phone: string;
+	mail: string;
+	post: string;
+	subdivisions: string;
+	image: string;
+}
 
 export interface State {
-	allTypes : {
-		first_name: string;
-		last_name:  string;
-		city_code:  string;
-		phone:  string;
-		mail: string;
-		image_url:  string;
-		post:  string;
-		subdivisions:  string;
-		latitude: number;
-    longitude: number;
-	}[];
-	foundTypes :{
-		first_name: string;
-		last_name:  string;
-		city_code:  string;
-		phone:  string;
-		mail: string;
-		image_url:  string;
-		post:  string;
-		subdivisions:  string;
-		latitude: number;
-    longitude: number;
-	}[];
-	isModalOpen:boolean;
+	features: {
+    geometry:{coordinates: [number, number]},
+    properties: Profile
+  }[];
+  foundedFeatures: {
+    geometry:{coordinates: [number, number]},
+    properties: Profile
+  }[];
+  activeProfile: Profile;
+	isInpModalOpen:boolean;
+	isCardModalOpen:boolean;
 	sortableField?: string;
 	map?: olMap;
 }
@@ -54,22 +54,14 @@ export class LayOut extends React.Component<Props, State> {
 		super(Props)
 
 		this.onInputChange = this.onInputChange.bind(this);
-		this.addFeatures = this.addFeatures.bind(this);
+		this.openModalCard = this.openModalCard.bind(this);
 	}
 
 	state:State = {
-		allTypes:undefined, 
-		foundTypes: undefined, 
-		isModalOpen:false
+		features: undefined,
+		isInpModalOpen:false,
+		isCardModalOpen:false
 	};
-
-	async loadProfile () {
-		this.setState({
-			allTypes: await fetch("/api/v0/TB/").then(
-				response =>response.json())
-		});
-		this.setState({foundTypes: this.state.allTypes})
-	}
 
 	setResults = (datas) => {
 		this.setState({foundTypes: datas});
@@ -80,62 +72,70 @@ export class LayOut extends React.Component<Props, State> {
 		this.forceUpdate();
 	}
 
-	componentDidMount() {
-		this.loadProfile();
-		var vectorSource = new VectorSource()
-    var vectorLayer = new VectorLayer({
-      source: vectorSource
-    });
-    var layers = [
-      new TileLayer({
-        source: new OSM()
-      }),
-      vectorLayer
-    ];
-
-	  this.state.map = new olMap({
-	    layers: layers,
-	    target: 'map',
-	    view: new View({
-	      projection: 'EPSG:4326',
-	      center: [39.72, 47.23],
-	      zoom: 12
-	    })
-	  });
+	openModalCard(id: number){
+		let features = this.state.foundedFeatures;
+		for (let i = 0; i < features.length; i++){
+			if (features[i].properties.id === id) {
+				this.setState({activeProfile: features[i].properties});
+				this.setState({isCardModalOpen: true});
+				break;
+			}
+		}
 	}
 
-	addFeatures(latitude:number, longitude:number, image_url:string){
-		let map = this.state.map;
+	componentDidMount() {
+		axios.get('/api/v0/TB/').then( 
+			res => {
+				var vectorSource = new VectorSource({
+					features: new GeoJSON().readFeatures({
+						type: 'FeatureCollection',
+						features: res.data.features
+					})
+				});
 
-		let layerGroup = map.getLayerGroup();
-		let layersArray = layerGroup.getLayers().getArray();
-		let vectorLayer = layersArray[1]
-		if (!(vectorLayer instanceof VectorLayer)){
-			throw new ReferenceError('bad layer') 
-		}
+		    let features = vectorSource.getFeatures();
+		    features.forEach(feature =>{
+		    	let iconStyle = new Style({
+		        image: new Icon(({
+		          src: feature.get('image'),
+		          scale: 0.03,
+		        }))
+	     		});
+      		feature.setStyle(iconStyle);
+		    });
 
-		let vectorSource = vectorLayer.getSource();
+		    var vectorLayer = new VectorLayer({
+		      source: vectorSource
+		    });
 
-		let iconFeature = new Feature({
-			geometry: new Point([latitude, longitude]),
-		});
+		    var layers = [
+		      new TileLayer({
+		        source: new OSM()
+		      }),
+		      vectorLayer
+		    ];
 
-		iconFeature.setStyle(
-			new Style({
-	      image: new Icon(({
-					anchor: [0.5, 0.96],
-					crossOrigin: 'anonymous',
-	        src: 'https://openlayers.org/en/v4.1.0/examples/data/dot.png'
-	      }))
-    	})
-		);
+			  this.state.map = new olMap({
+			    layers: layers,
+			    target: 'map',
+			    view: new View({
+			      projection: 'EPSG:4326',
+			      center: [39.72, 47.23],
+			      zoom: 12
+			    })
+			  });
 
-		vectorSource.addFeature(iconFeature);
-		vectorLayer.setSource(vectorSource);
-		let layerCollections = new olCollections(layersArray);
-		layerGroup.setLayers(layerCollections);
+			  this.state.map.on('singleclick', (e) => {
+			  	this.state.map.forEachFeatureAtPixel(e.pixel, feature => {
+	          this.openModalCard(feature.get('id'));
+	        });
+			  })
 
-		map.setLayerGroup(layerGroup);
+			  this.state.features = res.data.features;
+			  this.state.foundedFeatures = res.data.features;
+			  this.forceUpdate();
+			}
+		)
 	}
 
 	render(){
@@ -160,30 +160,41 @@ export class LayOut extends React.Component<Props, State> {
   					<option value="post">Post</option>
   					<option value="subdivisions">Subdivisions</option>
   					<option value="mail">Mail</option>
-
 					</select>
 					<div className="list">
 					{
-						this.state.foundTypes !== undefined &&
+						this.state.foundedFeatures !== undefined &&
 						<List 
-							profile={this.state.foundTypes}
+							profile={this.state.foundedFeatures}
 							sortableField={this.state.sortableField}
 							addFeatures={this.addFeatures}
+							openModalCard={this.openModalCard}
 						/>
 					}
 					</div>
 					<div className="form import-form">
 						<button  
 							className="open-modal"
-							onClick={() => this.setState({ isModalOpen: true })}
+							onClick={() => this.setState({ isInpModalOpen: true })}
 						> 
 							Add new profile 
 						</button>
 						<Modal 
-							isOpen={this.state.isModalOpen}
-							onClose={() => this.setState({ isModalOpen: false })}
+							isOpen={this.state.isInpModalOpen}
+							onClose={() => this.setState({ isInpModalOpen: false })}
 						>
 							<ImportForm/>
+						</Modal>
+						<Modal 
+							isOpen={this.state.isCardModalOpen}
+							onClose={() => this.setState({ isCardModalOpen: false })}
+						>
+						{
+							this.state.activeProfile !== undefined &&
+							<ObjectCard
+								profile={this.state.activeProfile}
+							/>
+						}
 						</Modal>
 					</div>
 				</div>
@@ -194,3 +205,4 @@ export class LayOut extends React.Component<Props, State> {
 		);
 	}
 }
+				
