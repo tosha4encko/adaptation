@@ -1,25 +1,10 @@
-from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from TB.models import TBProfile
 
-from DataType.models import Data, Type
-
-class TypeSerilizer(serializers.ModelSerializer):
-	datas = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='data'
-    )
-
-	class Meta:
-		model = Type
-		fields = [
-			'type',
-			'datas'
-		]
-
-class TBPreviewSerializer(serializers.ModelSerializer):
+class TBPreviewSerializer(GeoFeatureModelSerializer):
    class Meta:
 	   model = TBProfile
+	   geo_field = "locaton"
 	   fields = [
 			'id',
 		    'first_name',
@@ -27,17 +12,15 @@ class TBPreviewSerializer(serializers.ModelSerializer):
 		    'city_code',
 		    'phone',
 		    'mail',
-		    'image_url',
 		    'post',
 		    'subdivisions',
-		    'latitude',
-            'longitude'
+		    'image'
 	   ]
 
-
-class TBDetailSerializer(serializers.ModelSerializer):
+class TBDetailSerializer(GeoFeatureModelSerializer):
    class Meta:
 	   model = TBProfile
+	   geo_field = "locaton"
 	   fields = [
 		   'id',
 		   'first_name',
@@ -45,9 +28,7 @@ class TBDetailSerializer(serializers.ModelSerializer):
 		   'city_code',
 		   'phone',
 		   'mail',
-		   'image_url',
 		   'post',
 		   'subdivisions',
-		   'latitude',
-           'longitude'
+		   'image'
 	   ]

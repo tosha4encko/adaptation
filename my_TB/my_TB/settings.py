@@ -37,7 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'postgis',
     'rest_framework',
+    'rest_framework_gis',
     'TB',
     'main'
 ]
@@ -78,7 +81,7 @@ WSGI_APPLICATION = 'my_TB.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'test_db',
         'USER': 'admin',
         'PASSWORD': '12345678q',
@@ -121,7 +124,6 @@ USE_L10N = True
 USE_TZ = True
 
 REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_AUTHENTICATION_CLASSES': []
 }
 
@@ -132,4 +134,6 @@ STATIC_URL = '/static/'
 
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # STATICFILES_DIRS = (os.path.join(BASE_DIR, 'main/static/'), )
