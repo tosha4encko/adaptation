@@ -32,6 +32,11 @@ interface Profile {
 	image: string;
 }
 
+interface Proj {
+	name: string;
+	develop: string[];
+}
+
 export interface State {
 	features: {
     geometry:{coordinates: [number, number]},
@@ -41,11 +46,16 @@ export interface State {
     geometry:{coordinates: [number, number]},
     properties: Profile
   }[];
+  projects: Proj[];
   activeProfile: Profile;
 	isInpModalOpen:boolean;
 	isCardModalOpen:boolean;
 	sortableField?: string;
+
 	map?: olMap;
+	vectorSource: VectorSource;
+
+	stateList: string;
 }
 
 export interface Props {}
@@ -55,16 +65,19 @@ export class LayOut extends React.Component<Props, State> {
 
 		this.onInputChange = this.onInputChange.bind(this);
 		this.openModalCard = this.openModalCard.bind(this);
+		this.visionDevelopers = this.visionDevelopers.bind(this);
 	}
 
 	state:State = {
+		vectorSource: undefined,
 		features: undefined,
 		isInpModalOpen:false,
-		isCardModalOpen:false
+		isCardModalOpen:false,
+		stateList: 'profiles'
 	};
 
 	setResults = (datas) => {
-		this.setState({foundTypes: datas});
+		this.setState({foundedFeatures: datas});
 	}
 	
 	onInputChange(event){
@@ -83,9 +96,37 @@ export class LayOut extends React.Component<Props, State> {
 		}
 	}
 
+	visionDevelopers(id: string[]){
+		let features = this.state.vectorSource.getFeatures();
+		features.forEach(feature => {
+			let pred = id.indexOf(feature.get('id').toString());
+			if (pred !== -1){
+				let image = new Icon(({
+          src: feature.get('image'),
+          scale: 0.06,
+        }))
+				let style = feature.getStyle();
+				style.setImage(image);
+				feature.setStyle(style);
+			}
+			else{
+				let image = new Icon(({
+          src: feature.get('image'),
+          scale: 0.03,
+        }))
+				let style = feature.getStyle();
+				style.setImage(image);
+				feature.setStyle(style);
+			}
+		});
+	}
+
 	componentDidMount() {
-		axios.get('/api/v0/TB/').then( 
-			res => {
+		axios.get('api/v0/Proj').then( res => {
+			this.state.projects = res.data;
+			this.forceUpdate();
+		});
+		axios.get('/api/v0/TB/').then(res => {
 				var vectorSource = new VectorSource({
 					features: new GeoJSON().readFeatures({
 						type: 'FeatureCollection',
@@ -93,6 +134,7 @@ export class LayOut extends React.Component<Props, State> {
 					})
 				});
 
+				this.state.vectorSource = vectorSource;
 		    let features = vectorSource.getFeatures();
 		    features.forEach(feature =>{
 		    	let iconStyle = new Style({
@@ -138,6 +180,12 @@ export class LayOut extends React.Component<Props, State> {
 		)
 	}
 
+	diffList = () => {
+		this.state.stateList === 'profiles'
+		? this.setState({stateList: 'projects'})
+		: this.setState({stateList: 'profiles'})		
+	}
+
 	render(){
 		return(
 			<div className="content">
@@ -145,30 +193,50 @@ export class LayOut extends React.Component<Props, State> {
 					<div className="head-title">
 						<p> <b> Телефонный справочник </b> </p>
 					</div>
-					<div className="search-form">
-						<SearchForm
-							profile={this.state.allTypes}
-							setResults={this.setResults}
-						/>
-					</div>
-					<select onChange={this.onInputChange} className="select-form">
-					  <option value="id">id</option>
-  					<option value="first_name">First name</option>
-  					<option value="last_name">Last name</option>
-  					<option value="city_code">City code</option>
-  					<option value="phone">Phone</option>
-  					<option value="post">Post</option>
-  					<option value="subdivisions">Subdivisions</option>
-  					<option value="mail">Mail</option>
-					</select>
+					<button className="button" onClick={this.diffList}>
+						diffList/projects
+					</button>
+					{
+						this.state.stateList === 'profiles' && 
+						<div className="search-form">
+							<SearchForm
+								profile={this.state.allTypes}
+								setResults={this.setResults}
+							/>
+						</div>
+				  }
+					{
+						this.state.stateList === 'profiles' && 
+						<select onChange={this.onInputChange} className="select-form">
+						  <option value="id">id</option>
+	  					<option value="first_name">First name</option>
+	  					<option value="last_name">Last name</option>
+	  					<option value="city_code">City code</option>
+	  					<option value="phone">Phone</option>
+	  					<option value="post">Post</option>
+	  					<option value="subdivisions">Subdivisions</option>
+	  					<option value="mail">Mail</option>
+						</select>
+					}
+
 					<div className="list">
 					{
 						this.state.foundedFeatures !== undefined &&
+						this.state.stateList === 'profiles' && 
 						<List 
 							profile={this.state.foundedFeatures}
 							sortableField={this.state.sortableField}
-							addFeatures={this.addFeatures}
 							openModalCard={this.openModalCard}
+							listType="profiles"
+						/>
+					}
+					{
+						this.state.projects !== undefined &&
+						this.state.stateList === 'projects' && 
+						<List 
+							projects={this.state.projects}
+							listType="projects"
+							visionDevelopers={this.visionDevelopers}
 						/>
 					}
 					</div>

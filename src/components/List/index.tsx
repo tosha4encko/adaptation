@@ -1,10 +1,13 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import {ListItem} from '../ListItem'
+import {ListProjItem} from '../ListProjItem'
 
 export interface List {void}
 export interface Props {
-	profile : {
+	listType: string;
+
+	profile?: {
     properties: {
       first_name: string;
       last_name: string;
@@ -18,6 +21,12 @@ export interface Props {
   }[];
 	sortableField?: string;
 	openModalCard?: any;
+
+	projects?: {
+		name: string;
+		develop: number[];
+	}[]
+	visionDevelopers?: any;
 }
 export class List extends React.Component<Props> {
 	constructor(Props){
@@ -36,15 +45,25 @@ export class List extends React.Component<Props> {
 	}
 
 	render(){
-		let profiles = this.props.profile.slice();
-		profiles.sort(this.sortFunc);
+		let profiles;
+		if (this.props.listType === 'profiles'){
+			profiles = this.props.profile.slice();
+			profiles.sort(this.sortFunc);
+		}
 		return(
 			<div>
-			    {profiles.map((profile, index) => (
-					<div key={index}>
-						<ListItem profile={profile} openModalCard={this.props.openModalCard}/>
-					</div>
-				))}
+			    {this.props.listType === 'profiles' && 
+				    profiles.map((profile, index) => (
+						<div key={index}>
+							<ListItem profile={profile} openModalCard={this.props.openModalCard}/>
+						</div>
+					))}
+				  {this.props.listType === 'projects' && 
+				    this.props.projects.map((project, index) => (
+						<div key={index}>
+							<ListProjItem projects={project}  visionDevelopers={this.props.visionDevelopers}/>
+						</div>
+					))}
 			</div>
 		);
 	}
