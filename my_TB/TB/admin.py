@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 
-from .models import TBProfile
+from .models import TBProfile, Project
 
 class ProfileAdmin(admin.OSMGeoAdmin):
     default_lon = 4422232
@@ -18,8 +18,11 @@ class ProfileAdmin(admin.OSMGeoAdmin):
               'subdivisions'
               )
 
+class ProjectsAdmin(admin.ModelAdmin):
+    inlines = [ProfileAdmin]
+    fields = ('name')
 
 
 admin.site.register(TBProfile, ProfileAdmin)
-
-# admin.site.register(TBProfile)
+# admin.site.register(Project, ProjectsAdmin)
+admin.site.register(Project)
