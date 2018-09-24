@@ -47,7 +47,7 @@ export class ObjectCard extends React.Component<Props, State> {
 		} = this.props.profile;
 		return (
 			<div className="obj-card"> 
-				<h4> Object Card </h4>
+				<h4> Profile Card </h4>
 				<div className="title">
 					<div> <b> First name </b> : </div>
 					<div> <b> Last name </b> : </div>

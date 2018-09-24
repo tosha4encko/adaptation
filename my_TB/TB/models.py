@@ -19,5 +19,6 @@ class TBProfile(User):
 
 class Project(models.Model):
 	name = models.CharField(max_length=50)
+	repos = models.CharField(max_length=50)
 	develop = models.ManyToManyField(TBProfile, )
 

@@ -24,6 +24,7 @@ export interface Props {
 
 	projects?: {
 		name: string;
+		repos: string;
 		develop: number[];
 	}[]
 	visionDevelopers?: any;

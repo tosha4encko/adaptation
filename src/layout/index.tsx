@@ -34,6 +34,7 @@ interface Profile {
 
 interface Proj {
 	name: string;
+	repos: string;
 	develop: string[];
 }
 
@@ -65,7 +66,8 @@ export class LayOut extends React.Component<Props, State> {
 
 		this.onInputChange = this.onInputChange.bind(this);
 		this.openModalCard = this.openModalCard.bind(this);
-		this.visionDevelopers = this.visionDevelopers.bind(this);
+		this.increaseDevelopersForId = this.increaseDevelopersForId.bind(this);
+		this.decreaseAllDeveloper = this.decreaseAllDeveloper.bind(this);
 	}
 
 	state:State = {
@@ -96,29 +98,41 @@ export class LayOut extends React.Component<Props, State> {
 		}
 	}
 
-	visionDevelopers(id: string[]){
+	increaseDevelopersForId(id: string[]){
+		this.decreaseAllDeveloper();
 		let features = this.state.vectorSource.getFeatures();
 		features.forEach(feature => {
 			let pred = id.indexOf(feature.get('id').toString());
-			if (pred !== -1){
-				let image = new Icon(({
-          src: feature.get('image'),
-          scale: 0.06,
-        }))
-				let style = feature.getStyle();
-				style.setImage(image);
-				feature.setStyle(style);
-			}
-			else{
-				let image = new Icon(({
-          src: feature.get('image'),
-          scale: 0.03,
-        }))
-				let style = feature.getStyle();
-				style.setImage(image);
-				feature.setStyle(style);
-			}
+			if (pred !== -1)
+				this.increaseIcon(feature);
+			else
+				this.decreaseIcon(feature);
 		});
+	}
+
+	decreaseAllDeveloper(){
+		let features = this.state.vectorSource.getFeatures();
+		features.forEach(feature => {this.decreaseIcon(feature);});
+	}
+
+	increaseIcon(feature){
+		let image = new Icon(({
+      src: feature.get('image'),
+      scale: 0.06,
+    }))
+		let style = feature.getStyle();
+		style.setImage(image);
+		feature.setStyle(style);
+	} 
+
+	decreaseIcon(feature){
+		let image = new Icon(({
+      src: feature.get('image'),
+      scale: 0.03,
+    }))
+		let style = feature.getStyle();
+		style.setImage(image);
+		feature.setStyle(style);
 	}
 
 	componentDidMount() {
@@ -180,10 +194,14 @@ export class LayOut extends React.Component<Props, State> {
 		)
 	}
 
-	diffList = () => {
-		this.state.stateList === 'profiles'
-		? this.setState({stateList: 'projects'})
-		: this.setState({stateList: 'profiles'})		
+	openListProf = () => {
+		this.decreaseAllDeveloper();
+		this.setState({stateList: 'profiles'})		
+	}
+
+	openListProg = () => {
+		this.decreaseAllDeveloper();
+	  this.setState({stateList: 'projects'})
 	}
 
 	render(){
@@ -193,31 +211,32 @@ export class LayOut extends React.Component<Props, State> {
 					<div className="head-title">
 						<p> <b> Телефонный справочник </b> </p>
 					</div>
-					<button className="button" onClick={this.diffList}>
-						diffList/projects
-					</button>
-					{
-						this.state.stateList === 'profiles' && 
-						<div className="search-form">
-							<SearchForm
-								profile={this.state.allTypes}
-								setResults={this.setResults}
-							/>
-						</div>
-				  }
-					{
-						this.state.stateList === 'profiles' && 
-						<select onChange={this.onInputChange} className="select-form">
-						  <option value="id">id</option>
-	  					<option value="first_name">First name</option>
-	  					<option value="last_name">Last name</option>
-	  					<option value="city_code">City code</option>
-	  					<option value="phone">Phone</option>
-	  					<option value="post">Post</option>
-	  					<option value="subdivisions">Subdivisions</option>
-	  					<option value="mail">Mail</option>
-						</select>
-					}
+					<div className="button-diff-list">
+						<button  onClick={this.openListProf}>
+							List profiles
+						</button>
+						<button  onClick={this.openListProg}>
+							List projects
+						</button>
+					</div>
+
+					<div className="search-form">
+						<SearchForm
+							profile={this.state.allTypes}
+							setResults={this.setResults}
+						/>
+					</div>
+
+					<select onChange={this.onInputChange} className="select-form">
+					  <option value="id">id</option>
+  					<option value="first_name">First name</option>
+  					<option value="last_name">Last name</option>
+  					<option value="city_code">City code</option>
+  					<option value="phone">Phone</option>
+  					<option value="post">Post</option>
+  					<option value="subdivisions">Subdivisions</option>
+  					<option value="mail">Mail</option>
+					</select>
 
 					<div className="list">
 					{
@@ -236,7 +255,7 @@ export class LayOut extends React.Component<Props, State> {
 						<List 
 							projects={this.state.projects}
 							listType="projects"
-							visionDevelopers={this.visionDevelopers}
+							visionDevelopers={this.increaseDevelopersForId}
 						/>
 					}
 					</div>

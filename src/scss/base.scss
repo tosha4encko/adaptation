@@ -21,18 +21,28 @@ body {
 	
 	& .left-content{
 		width: 40%;
-		
 
 		& .head-title{
 			background-color: $head-title-color;
-			height: 10%;
+			height: 8%;
 			text-align: center;
 
 			& p{
 				font-size: 20px;
 				margin: 0;
-				padding-top: 25px;
+				padding-top: 15px;
 			}
+		}
+
+		& .button-diff-list {
+			height: 4%;
+			display: flex;
+			width: 100%;
+
+			 	& button{
+			 		display: block;
+			 		width: 50%;
+			 	}
 		}
 
 		& .search-form{
@@ -63,7 +73,7 @@ body {
 		& .open-modal{
 			border: 0;
 			width:100%;
-			height: 10%;
+			height: 8%;
 		}
 	}
 
