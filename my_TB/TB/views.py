@@ -1,12 +1,17 @@
 from django.http import HttpResponse
 from .models import TBProfile
 
+from django.contrib.gis.geos import Point
+import random
+from pathlib import Path
 import requests
 from lxml import html
 import re
+import os
 
 def geodom_synch(request):
-    synch_from_geonet()
+    # synch_from_geonet()
+    synch_from_ORISI()
     return HttpResponse("synchronize successful ")
 
 
@@ -41,13 +46,52 @@ def synch_from_geonet():
             city_code = phone[2:5]
             phone = phone[6:14]
 
-        prof = TBProfile(post = post_user,
-                         subdivisions = area,
-                         mail = mail,
-                         image_url = image,
-                         first_name = first_name,
-                         last_name = last_name,
-                         username = first_name,
-                         city_code = city_code,
-                         phone = phone)
-        prof.save()
+        from django.conf import settings
+
+        r = requests.get(image)
+        path = settings.MEDIA_ROOT + '/{}'.format(image.split('/')[-1])
+        target = Path(path)
+        target.write_bytes(r.content)
+        try:
+            prof = TBProfile(username = first_name,
+                             post = post_user,
+                             subdivisions = area,
+                             mail = mail,
+                             first_name = first_name,
+                             last_name = last_name,
+                             city_code = city_code,
+                             phone = phone,
+                             locaton=random_point())
+            prof.image = image.split('/')[-1]
+            prof.save()
+        finally:
+            pass
+            # os.remove(path)
+
+def synch_from_ORISI():
+    url = r'http://192.168.200.10:11111/'
+    html_text = requests.get(url).text
+    tree = html.fromstring(html_text)
+
+    table_col = tree.xpath('//tr[@class="landing"]')
+
+    for obj in table_col:
+        text = html.tostring(obj, encoding='unicode').encode('raw-unicode-escape')
+        print(text)
+        fields = re.findall(r'<td>(.*?)</td>', text.decode('utf-8'))
+        if (len(fields) == 8 and fields[4] != '---' and fields[5] != '---'):
+            name = re.search(r'>(.*?)<', fields[0]).group(1)
+            repos = fields[4]
+            develops = fields[5]
+            continue
+
+
+def random_point():
+    lat = 39.72
+    lon = 47.23
+
+    lat += (random.randint(0, 250) - 125)/1000
+    lon += (random.randint(0, 100) - 50)/1000
+
+    return Point(lat, lon)
+

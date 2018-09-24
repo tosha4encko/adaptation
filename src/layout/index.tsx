@@ -118,7 +118,7 @@ export class LayOut extends React.Component<Props, State> {
 	increaseIcon(feature){
 		let image = new Icon(({
       src: feature.get('image'),
-      scale: 1,
+      scale: 0.8,
     }))
 		let style = feature.getStyle();
 		style.setImage(image);
@@ -128,7 +128,7 @@ export class LayOut extends React.Component<Props, State> {
 	decreaseIcon(feature){
 		let image = new Icon(({
       src: feature.get('image'),
-      scale: 0.5,
+      scale: 0.4,
     }))
 		let style = feature.getStyle();
 		style.setImage(image);
@@ -154,7 +154,7 @@ export class LayOut extends React.Component<Props, State> {
 		    	let iconStyle = new Style({
 		        image: new Icon(({
 		          src: feature.get('image'),
-		          scale: 5,
+		          scale: 0.4,
 		        }))
 	     		});
       		feature.setStyle(iconStyle);

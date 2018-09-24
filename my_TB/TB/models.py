@@ -13,7 +13,6 @@ class TBProfile(User):
 
 	image = models.ImageField(null=True, upload_to='profile_image')
 
-
 	locaton = models.PointField(null=True)
 
 	def save(self, *args, **kwargs):

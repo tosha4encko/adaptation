@@ -29,11 +29,20 @@ export interface Props {
 	}[]
 	visionDevelopers?: any;
 }
-export class List extends React.Component<Props> {
+
+export interface State{
+	activeItemId: number|undefined;
+}
+
+export class List extends React.Component<Props, State> {
 	constructor(Props){
 		super(Props);
 		this.sortFunc = this.sortFunc.bind(this);
 	}
+
+	state:State = {
+		activeItemId: undefined
+	};
 
 	static defaultProps = {
     sortableField: 'id'
@@ -45,6 +54,10 @@ export class List extends React.Component<Props> {
 	  if (x[sortableField] < y[sortableField]) return -1;
 	}
 
+	acriveItem(id){
+		this.setState({activeItemId: id});
+	}
+
 	render(){
 		let profiles;
 		if (this.props.listType === 'profiles'){
@@ -53,18 +66,23 @@ export class List extends React.Component<Props> {
 		}
 		return(
 			<div>
-			    {this.props.listType === 'profiles' && 
-				    profiles.map((profile, index) => (
-						<div key={index}>
-							<ListItem profile={profile} openModalCard={this.props.openModalCard}/>
-						</div>
-					))}
-				  {this.props.listType === 'projects' && 
-				    this.props.projects.map((project, index) => (
-						<div key={index}>
-							<ListProjItem projects={project}  visionDevelopers={this.props.visionDevelopers}/>
-						</div>
-					))}
+		    {this.props.listType === 'profiles' && 
+			    profiles.map((profile, index) => (
+					<div key={index}>
+						<ListItem profile={profile} openModalCard={this.props.openModalCard}/>
+					</div>
+				))}
+			  {this.props.listType === 'projects' && 
+			    this.props.projects.map((project, index) => (
+					<div key={index} 
+						  onClick={() => this.acriveItem(index)}>
+						<ListProjItem 
+							projects={project}  
+							visionDevelopers={this.props.visionDevelopers} 
+							isActive={this.state.activeItemId === index ? true : false}
+						/>
+					</div>
+				))}
 			</div>
 		);
 	}
