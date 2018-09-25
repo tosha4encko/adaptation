@@ -37,7 +37,7 @@ class TBProfile(User):
 				new_image.save(filepath)
 
 	def __str__(self):
-		return str(self.id)
+		return self.first_name + ' ' + self.last_name
 
 	def __unicode__(self):
 		return str(self.id)
@@ -46,4 +46,7 @@ class Project(models.Model):
 	name = models.CharField(max_length=50)
 	repos = models.CharField(max_length=50)
 	develop = models.ManyToManyField(TBProfile, )
+
+	def __str__(self):
+		return self.name
 

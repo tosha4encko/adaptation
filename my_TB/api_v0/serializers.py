@@ -1,5 +1,5 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from rest_framework.serializers import StringRelatedField, ModelSerializer
+from rest_framework.serializers import PrimaryKeyRelatedField, ModelSerializer
 
 from TB.models import TBProfile, Project
 
@@ -38,11 +38,11 @@ class TBDetailSerializer(GeoFeatureModelSerializer):
 			'mail',
 			'post',
 			'subdivisions',
-			'image'
+			'image',
 		]
 
 class ProjSerializer(ModelSerializer):
-	develop = StringRelatedField(many=True)
+	develop = PrimaryKeyRelatedField(many=True, read_only=True)
 
 	class Meta:
 		model = Project
