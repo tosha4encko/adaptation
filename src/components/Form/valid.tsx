@@ -5,7 +5,6 @@ export interface profileData {
 	city_code:  string;
 	phone:  string;
 	mail: string;
-	image_url:  string;
 	post:  string;
 	subdivisions:  string;
 } 

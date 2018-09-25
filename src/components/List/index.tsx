@@ -50,8 +50,14 @@ export class List extends React.Component<Props, State> {
 
 	sortFunc(x, y) {
 		let sortableField = this.props.sortableField;
-	  if (x[sortableField] > y[sortableField]) return 1;
-	  if (x[sortableField] < y[sortableField]) return -1;
+		if (x.properties !== undefined){
+		  if (x.properties[sortableField] > y.properties[sortableField]) return 1;
+		  if (x.properties[sortableField] < y.properties[sortableField]) return -1;
+		}else{
+			if (x[sortableField] > y[sortableField]) return 1;
+		  if (x[sortableField] < y[sortableField]) return -1;
+		}
+
 	}
 
 	acriveItem(id){
@@ -59,21 +65,25 @@ export class List extends React.Component<Props, State> {
 	}
 
 	render(){
-		let profiles;
+		let items;
 		if (this.props.listType === 'profiles'){
-			profiles = this.props.profile.slice();
-			profiles.sort(this.sortFunc);
+			items = this.props.profile.slice();
+			items.sort(this.sortFunc);
+		}
+		if (this.props.listType === 'projects'){
+			items = this.props.projects.slice();
+			items.sort(this.sortFunc);
 		}
 		return(
 			<div>
 		    {this.props.listType === 'profiles' && 
-			    profiles.map((profile, index) => (
+			    items.map((profile, index) => (
 					<div key={index}>
 						<ListItem profile={profile} openModalCard={this.props.openModalCard}/>
 					</div>
 				))}
 			  {this.props.listType === 'projects' && 
-			    this.props.projects.map((project, index) => (
+			    items.map((project, index) => (
 					<div key={index} 
 						  onClick={() => this.acriveItem(index)}>
 						<ListProjItem 

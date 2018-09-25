@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {List, SearchForm, ImportForm, Map, Modal, ObjectCard} from '../components/'
+import {List, SearchForm, ImportForm, Modal, ObjectCard} from '../components/'
 
 import olMap from 'ol/Map.js';
 import View from 'ol/View.js';
@@ -47,8 +47,15 @@ export interface State {
     geometry:{coordinates: [number, number]},
     properties: Profile
   }[];
+
   projects: Proj[];
-  activeProfile: Profile;
+  foundedProj: Proj[];
+  
+  activeProfile: {
+    geometry:{coordinates: [number, number]},
+    properties: Profile
+  };
+
 	isInpModalOpen:boolean;
 	isCardModalOpen:boolean;
 	sortableField?: string;
@@ -79,7 +86,10 @@ export class LayOut extends React.Component<Props, State> {
 	};
 
 	setResults = (datas) => {
-		this.setState({foundedFeatures: datas});
+		if (this.state.stateList === 'profiles')
+			this.setState({foundedFeatures: datas});
+		if (this.state.stateList === 'projects')
+			this.setState({foundedProj: datas});
 	}
 	
 	onInputChange(event){
@@ -88,21 +98,21 @@ export class LayOut extends React.Component<Props, State> {
 	}
 
 	openModalCard(id: number){
-		let features = this.state.foundedFeatures;
+		let features = this.state.features;
 		for (let i = 0; i < features.length; i++){
 			if (features[i].properties.id === id) {
-				this.setState({activeProfile: features[i].properties});
+				this.setState({activeProfile: features[i]});
 				this.setState({isCardModalOpen: true});
 				break;
 			}
 		}
 	}
 
-	increaseDevelopersForId(id: string[]){
+	increaseDevelopersForId(id: number[]){
 		this.decreaseAllDeveloper();
 		let features = this.state.vectorSource.getFeatures();
 		features.forEach(feature => {
-			let pred = id.indexOf(feature.get('id').toString());
+			let pred = id.indexOf(feature.get('id'));
 			if (pred !== -1)
 				this.increaseIcon(feature);
 			else
@@ -122,6 +132,7 @@ export class LayOut extends React.Component<Props, State> {
     }))
 		let style = feature.getStyle();
 		style.setImage(image);
+		style.setZIndex(999);
 		feature.setStyle(style);
 	} 
 
@@ -132,76 +143,80 @@ export class LayOut extends React.Component<Props, State> {
     }))
 		let style = feature.getStyle();
 		style.setImage(image);
+		style.setZIndex(0);
 		feature.setStyle(style);
 	}
 
 	componentDidMount() {
 		axios.get('api/v0/Proj').then( res => {
 			this.state.projects = res.data;
+			this.state.foundedProj = res.data;
 			this.forceUpdate();
 		});
 		axios.get('/api/v0/TB/').then(res => {
-				var vectorSource = new VectorSource({
-					features: new GeoJSON().readFeatures({
-						type: 'FeatureCollection',
-						features: res.data.features
-					})
-				});
+			var vectorSource = new VectorSource({
+				features: new GeoJSON().readFeatures({
+					type: 'FeatureCollection',
+					features: res.data.features
+				})
+			});
 
-				this.state.vectorSource = vectorSource;
-		    let features = vectorSource.getFeatures();
-		    features.forEach(feature =>{
-		    	let iconStyle = new Style({
+			this.state.vectorSource = vectorSource;
+	    let features = vectorSource.getFeatures();
+	    features.forEach(feature =>{
+	    	let img = feature.get('image');
+	    	if (img) {
+	    		let iconStyle = new Style({
 		        image: new Icon(({
 		          src: feature.get('image'),
 		          scale: 0.4,
 		        }))
 	     		});
-      		feature.setStyle(iconStyle);
-		    });
+	    		feature.setStyle(iconStyle);
+	    	}
+	    });
 
-		    var vectorLayer = new VectorLayer({
-		      source: vectorSource
-		    });
+	    var vectorLayer = new VectorLayer({
+	      source: vectorSource
+	    });
 
-		    var layers = [
-		      new TileLayer({
-		        source: new OSM()
-		      }),
-		      vectorLayer
-		    ];
+	    var layers = [
+	      new TileLayer({
+	        source: new OSM()
+	      }),
+	      vectorLayer
+	    ];
 
-			  this.state.map = new olMap({
-			    layers: layers,
-			    target: 'map',
-			    view: new View({
-			      projection: 'EPSG:4326',
-			      center: [39.72, 47.23],
-			      zoom: 12
-			    })
-			  });
+		  this.state.map = new olMap({
+		    layers: layers,
+		    target: 'map',
+		    view: new View({
+		      projection: 'EPSG:4326',
+		      center: [39.72, 47.23],
+		      zoom: 12
+		    })
+		  });
 
-			  this.state.map.on('singleclick', (e) => {
-			  	this.state.map.forEachFeatureAtPixel(e.pixel, feature => {
-	          this.openModalCard(feature.get('id'));
-	        });
-			  })
+		  this.state.map.on('singleclick', (e) => {
+		  	this.state.map.forEachFeatureAtPixel(e.pixel, feature => {
+          this.openModalCard(feature.get('id'));
+        });
+		  })
 
-			  this.state.features = res.data.features;
-			  this.state.foundedFeatures = res.data.features;
-			  this.forceUpdate();
-			}
-		)
+		  this.state.features = res.data.features;
+		  this.state.foundedFeatures = res.data.features;
+		  this.forceUpdate();
+		})
 	}
 
 	openListProf = () => {
 		this.decreaseAllDeveloper();
-		this.setState({stateList: 'profiles'})		
+		this.setState({stateList: 'profiles', foundedFeatures: this.state.features})		
 	}
 
 	openListProg = () => {
 		this.decreaseAllDeveloper();
-	  this.setState({stateList: 'projects'})
+	  this.setState({stateList: 'projects', foundedProj: this.state.projects})
 	}
 
 	render(){
@@ -221,40 +236,58 @@ export class LayOut extends React.Component<Props, State> {
 					</div>
 
 					<div className="search-form">
-						<SearchForm
-							profile={this.state.allTypes}
-							setResults={this.setResults}
-						/>
+						{ this.state.stateList === 'profiles' && 
+							<SearchForm
+								features={this.state.features}
+								setResults={this.setResults}
+							/>
+						}
+						{ this.state.stateList === 'projects' && 
+							<SearchForm
+								features={this.state.projects}
+								setResults={this.setResults}
+							/>
+						}
 					</div>
 
-					<select onChange={this.onInputChange} className="select-form">
-					  <option value="id">id</option>
-  					<option value="first_name">First name</option>
-  					<option value="last_name">Last name</option>
-  					<option value="city_code">City code</option>
-  					<option value="phone">Phone</option>
-  					<option value="post">Post</option>
-  					<option value="subdivisions">Subdivisions</option>
-  					<option value="mail">Mail</option>
-					</select>
+					{ this.state.stateList === 'profiles' && 
+						<select onChange={this.onInputChange} className="select-form">
+						  <option value="id">id</option>
+	  					<option value="first_name">First name</option>
+	  					<option value="last_name">Last name</option>
+	  					<option value="city_code">City code</option>
+	  					<option value="phone">Phone</option>
+	  					<option value="post">Post</option>
+	  					<option value="subdivisions">Subdivisions</option>
+	  					<option value="mail">Mail</option>
+						</select>
+  				}
+  				{ this.state.stateList === 'projects' && 
+						<select onChange={this.onInputChange} className="select-form">
+						  <option value="id">id</option>
+	  					<option value="name">Project</option>
+	  					<option value="repos">Repository</option>
+						</select>
+  				}
 
 					<div className="list">
 					{
 						this.state.foundedFeatures !== undefined &&
 						this.state.stateList === 'profiles' && 
 						<List 
+							listType="profiles"
 							profile={this.state.foundedFeatures}
 							sortableField={this.state.sortableField}
 							openModalCard={this.openModalCard}
-							listType="profiles"
 						/>
 					}
 					{
 						this.state.projects !== undefined &&
 						this.state.stateList === 'projects' && 
 						<List 
-							projects={this.state.projects}
 							listType="projects"
+							projects={this.state.foundedProj}
+							sortableField={this.state.sortableField}
 							visionDevelopers={this.increaseDevelopersForId}
 						/>
 					}
@@ -279,7 +312,7 @@ export class LayOut extends React.Component<Props, State> {
 						{
 							this.state.activeProfile !== undefined &&
 							<ObjectCard
-								profile={this.state.activeProfile}
+								features={this.state.activeProfile}
 							/>
 						}
 						</Modal>

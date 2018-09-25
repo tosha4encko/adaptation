@@ -2,36 +2,27 @@ import * as React from 'react'
 import axios from 'axios'
 import {isValid} from '../valid'
 
+interface Profile {
+	first_name: string;
+	last_name: string;
+	city_code: string;
+	phone: string;
+	mail: string;
+	post: string;
+	subdivisions: string;
+}
+
 interface State{
-	profile:{
-		first_name: string;
-		last_name:  string;
-		city_code:  string;
-		phone:  string;
-		mail: string;
-		image_url:  string;
-		post:  string;
-		subdivisions:  string;
-		latitude: number;
-		longitude: number;
-	};
+	features: {
+    geometry:{coordinates: number[]}
+    properties: Profile
+  };
 	isEdit: boolean;
 }
 
 export interface Props{
 	id?: number;
-	defaultState?:{
-		first_name: string;
-		last_name:  string;
-		city_code:  string;
-		phone:  string;
-		mail: string;
-		image_url:  string;
-		post:  string;
-		subdivisions:  string;
-		latitude: number;
-		longitude: number;
-	},
+	defaultProfile : Profile;
 	title?: string;
 }
 
@@ -39,40 +30,49 @@ export class ImportForm extends React.Component<Props, State>{
 	state:State;
 	constructor(props){
 		super(props);
-		this.state = {profile: this.props.defaultState, isEdit: true};
+		let initFeature = {
+	    geometry:{coordinates: this.props.defaultLocations},
+	    properties: this.props.defaultProfile
+	  };
+		this.state = {features: initFeature, isEdit: true};
 
 		this.onInputChange = this.onInputChange.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
 	}
 
 	static defaultProps = {
-    defaultState:{
+    defaultProfile:{
 			first_name: '',
 			last_name: '',
 			city_code: '',
 			phone: '',
 			mail: '',
-			image_url: '',
-			post:  '',
-			subdivisions: '',
-			latitude: 39.72,
-			longitude: 47.23
+			post: '',
+			subdivisions: ''
 		},
+		defaultLocations: [39.72, 47.23],
 		title: 'Add new profile'
   };
 
 	onSubmit(event){
-		if (isValid(this.state.profile)){
+		if (isValid(this.state.features.properties)){
+			let features = this.state.features.properties ;
 			this.props.id === undefined
-			? axios.post('api/v0/TB/', this.state.profile).then()
-			: axios.put(`api/v0/TB/${this.props.id}`, this.state.profile).then();
+			? axios.post('api/v0/TB/', features).then()
+			: axios.put(`api/v0/TB/${this.props.id}`, features).then();
 			location.reload(true);
 		}
 	}
 
 	onInputChange(event){
 		const name = event.target.name;
-		this.state.profile[name] = event.target.value;
+		if (name === 'latitude')
+			this.state.features.geometry.coordinates[0] = event.target.value;
+		else
+		if (name === "longitude")
+				this.state.features.geometry.coordinates[1] = event.target.value;
+		else
+			this.state.features.properties[name] = event.target.value;
 		this.forceUpdate();
 	}
 
@@ -83,12 +83,9 @@ export class ImportForm extends React.Component<Props, State>{
 			city_code,
 			phone,
 			mail,
-			image_url,
 			post,
-			subdivisions,
-			latitude,
-			longitude
-		} = this.state.profile;
+			subdivisions
+		} = this.state.features.properties;
 
 		let isEdit = this.state.isEdit;
 		return(
@@ -147,16 +144,6 @@ export class ImportForm extends React.Component<Props, State>{
 						/>
 					</div>	
 					<div className="item">
-						<label> Image </label>
-						<input
-							name="image_url" 
-							autoComplete="off"
-							type="text" 
-							onChange={this.onInputChange}
-							value={image_url}
-						/>
-					</div>	
-					<div className="item">
 						<label> Post </label>
 						<input
 							name="post" 
@@ -174,26 +161,6 @@ export class ImportForm extends React.Component<Props, State>{
 							type="text" 
 							onChange={this.onInputChange}
 							value={subdivisions}
-						/>
-					</div>	
-					<div className="item">
-						<label> Latitude </label>
-						<input
-							name="latitude" 
-							autoComplete="off"
-							type="text" 
-							onChange={this.onInputChange}
-							value={latitude}
-						/>
-					</div>
-					<div className="item">
-						<label> Longitude </label>
-						<input
-							name="longitude" 
-							autoComplete="off"
-							type="text" 
-							onChange={this.onInputChange}
-							value={longitude}
 						/>
 					</div>	
 					<input type="button" onClick={this.onSubmit} value="Submit" />

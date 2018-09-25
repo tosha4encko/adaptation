@@ -6,20 +6,25 @@ import {ImportForm} from '../Form'
 import {Modal} from '../Modal'
 
 import './ObjCard.scss'
-export interface Props {
-	profile : {
-		first_name: string;
-		last_name:  string;
-		city_code:  string;
-		phone:  string;
-		mail: string;
-		post: string;
-		subdivisions:  string;
 
-		id?:  number; 
-		latitude?: number;
-		longitude?: number;
-	}
+
+interface Profile {
+	first_name: string;
+	last_name: string;
+	city_code: string;
+	phone: string;
+	mail: string;
+	post: string;
+	subdivisions: string;
+	image: string;
+	id: number;
+}
+
+export interface Props {
+	features: {
+    geometry: {coordinates: [number, number]},
+    properties: Profile
+  };
 }  
 
 export interface State{
@@ -29,7 +34,7 @@ export interface State{
 export class ObjectCard extends React.Component<Props, State> {
 	state:State = {isModalOpen: false};
 	deleteProfile = () => {
-		axios.delete(`api/v0/TB/${this.props.profile.id}`).then();
+		axios.delete(`api/v0/TB/${this.props.features.properties.id}`).then();
 		location.reload(true);
 	}
 	render(){
@@ -41,10 +46,8 @@ export class ObjectCard extends React.Component<Props, State> {
 			mail,
 			post,
 			subdivisions,
-			id,
-			latitude,
-			longitude
-		} = this.props.profile;
+			id
+		} = this.props.features.properties;
 		return (
 			<div className="obj-card"> 
 				<h4> Profile Card </h4>
@@ -63,7 +66,6 @@ export class ObjectCard extends React.Component<Props, State> {
 					<div> {mail} </div>
 					<div> {post} </div>
 					<div> {subdivisions} </div>
-					
 				</div>
 				<div className="button">
 					<button onClick={() => this.setState({ isModalOpen: true })}> Edit </button>
@@ -74,18 +76,16 @@ export class ObjectCard extends React.Component<Props, State> {
 						<ImportForm 
 							id={id}
 							title="Update this profile"
-							defaultState={
-								{
-								  first_name:first_name,
-								  last_name:last_name,
-								  city_code:city_code,
-								  phone:phone,
-						 			mail:mail,
-									post:post,
-									subdivisions:subdivisions,
-									latitude: latitude,
-									longitude: longitude
-								}
+							defaultProfile={
+								{ 
+									first_name: first_name,
+									last_name: last_name,
+									city_code: city_code,
+									phone: phone,
+									mail: mail,
+									post: post,
+									subdivisions: subdivisions,
+							  }
 							}
 						/>
 					</Modal>
