@@ -1,29 +1,37 @@
 
 
 .obj-card{
-	float: left;
+	
 	font-size: 20px;
 	padding: 10px;
+	display:flex;
+	flex-wrap: wrap;
+	// & h4 {
+	// 	margin-top: 5px;
+	// 	margin-bottom: 10px;
+	// 	text-align: center;
+	// }
 
-	& h4 {
-		margin-top: 5px;
-		margin-bottom: 10px;
-		text-align: center;
+	& .image {
+		padding: 20px 10px;
+		display: block;
 	}
 
-	& .title{
-		display: inline-block;
-		text-align: left;
+	& .inform {
+		float: left;
+		& .title{
+			display: inline-block;
+			text-align: left;
 
-		width: 150px;
-		clear:both;
+			width: 150px;
+			clear: both;
+		}
+
+		& .data{
+			display: inline-block;
+			text-align: left;
+		}
 	}
-
-	& .data{
-		display: inline-block;
-		text-align: left;
-	}
-
 	& .button{
 		text-align:center;
 		margin-top:5px;

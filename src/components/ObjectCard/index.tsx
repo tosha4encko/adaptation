@@ -46,50 +46,55 @@ export class ObjectCard extends React.Component<Props, State> {
 			mail,
 			post,
 			subdivisions,
+			image,
 			id
 		} = this.props.features.properties;
 		return (
 			<div className="obj-card"> 
-				<h4> Profile Card </h4>
-				<div className="title">
-					<div> <b> First name </b> : </div>
-					<div> <b> Last name </b> : </div>
-					<div> <b> Phone </b> : </div>
-					<div> <b> Mail </b> : </div>
-					<div> <b> Post </b> : </div>
-					<div> <b> Subdivisions </b> : </div>
+				<div className="image">
+					<img src={image} />
 				</div>
-				<div className="data">
-					<div> {first_name}</div>
-					<div> {last_name} </div>
-					<div> {`(${city_code}) ${phone}`}</div>	
-					<div> {mail} </div>
-					<div> {post} </div>
-					<div> {subdivisions} </div>
-				</div>
-				<div className="button">
-					<button onClick={() => this.setState({ isModalOpen: true })}> Edit </button>
-					<Modal 
-						isOpen={this.state.isModalOpen}
-						onClose={() => this.setState({ isModalOpen: false })}
-					>
-						<ImportForm 
-							id={id}
-							title="Update this profile"
-							defaultProfile={
-								{ 
-									first_name: first_name,
-									last_name: last_name,
-									city_code: city_code,
-									phone: phone,
-									mail: mail,
-									post: post,
-									subdivisions: subdivisions,
-							  }
-							}
-						/>
-					</Modal>
-					<button onClick={this.deleteProfile}> Delete </button>
+				<div className="inform">
+					<div className="title">
+						<div> <b> First name </b> : </div>
+						<div> <b> Last name </b> : </div>
+						<div> <b> Phone </b> : </div>
+						<div> <b> Mail </b> : </div>
+						<div> <b> Post </b> : </div>
+						<div> <b> Subdivisions </b> : </div>
+					</div>
+					<div className="data">
+						<div> {first_name}</div>
+						<div> {last_name} </div>
+						<div> {`(${city_code}) ${phone}`}</div>	
+						<div> {mail} </div>
+						<div> {post} </div>
+						<div> {subdivisions} </div>
+					</div>
+					<div className="button">
+						<button onClick={() => this.setState({ isModalOpen: true })}> Edit </button>
+						<Modal 
+							isOpen={this.state.isModalOpen}
+							onClose={() => this.setState({ isModalOpen: false })}
+						>
+							<ImportForm 
+								id={id}
+								title="Update this profile"
+								defaultProfile={
+									{ 
+										first_name: first_name,
+										last_name: last_name,
+										city_code: city_code,
+										phone: phone,
+										mail: mail,
+										post: post,
+										subdivisions: subdivisions,
+								  }
+								}
+							/>
+						</Modal>
+						<button onClick={this.deleteProfile}> Delete </button>
+					</div>
 				</div>
 			</div>
 		)

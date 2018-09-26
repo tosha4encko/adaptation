@@ -33,7 +33,8 @@ export class SearchForm extends React.Component<Props>{
 			if (data.properties !== undefined){
 				for (let key in data.properties)
 					if (key !== 'id' && 
-						  data.properties[key] !== undefined && 
+						  key !== 'images' && 
+						  data.properties[key] && 
 						  data.properties[key].toLowerCase().indexOf(subStr) !== -1){
 						res.push(data);
 						break;
@@ -41,8 +42,9 @@ export class SearchForm extends React.Component<Props>{
 			}else{
 				for (let key in data)
 					if (key !== 'id' && 
+						  key !== 'images' && 
 							key !== 'develop' &&
-						  data[key] !== undefined && 
+						  data[key] && 
 						  data[key].toLowerCase().indexOf(subStr) !== -1){
 						res.push(data);
 						break;

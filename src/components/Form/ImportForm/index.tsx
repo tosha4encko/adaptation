@@ -9,6 +9,7 @@ interface Profile {
 	phone: string;
 	mail: string;
 	post: string;
+	image: string;
 	subdivisions: string;
 }
 
@@ -56,10 +57,10 @@ export class ImportForm extends React.Component<Props, State>{
 
 	onSubmit(event){
 		if (isValid(this.state.features.properties)){
-			let features = this.state.features.properties ;
+			var formData = new FormData(document.getElementById('inpForm'));
 			this.props.id === undefined
-			? axios.post('api/v0/TB/', features).then()
-			: axios.put(`api/v0/TB/${this.props.id}`, features).then();
+			? axios.post('api/v0/TB/', formData).then()
+			: axios.put(`api/v0/TB/${this.props.id}`, formData).then();
 			location.reload(true);
 		}
 	}
@@ -80,6 +81,7 @@ export class ImportForm extends React.Component<Props, State>{
 		let {
 			first_name,
 			last_name,
+			image,
 			city_code,
 			phone,
 			mail,
@@ -91,7 +93,7 @@ export class ImportForm extends React.Component<Props, State>{
 		return(
 			<div>
 				<h4> {this.props.title} </h4>
-				<form className="bform" action='#'>
+				<form className="form" id="inpForm" action='#'>
 					<div className="item">
 						<label> First Name </label>
 						<input
@@ -161,6 +163,14 @@ export class ImportForm extends React.Component<Props, State>{
 							type="text" 
 							onChange={this.onInputChange}
 							value={subdivisions}
+						/>
+					</div>	
+					<div className="item">
+						<label> Image </label>
+						<input
+							name="image"
+							type="file" 
+							onChange={this.onInputChange}
 						/>
 					</div>	
 					<input type="button" onClick={this.onSubmit} value="Submit" />
