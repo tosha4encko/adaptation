@@ -109,7 +109,7 @@ export class LayOut extends React.Component<Props, State> {
 	}
 
 	increaseDevelopersForId(id: number[]){
-		this.decreaseAllDeveloper();
+		//this.decreaseAllDeveloper();
 		let features = this.state.vectorSource.getFeatures();
 		features.forEach(feature => {
 			let pred = id.indexOf(feature.get('id'));

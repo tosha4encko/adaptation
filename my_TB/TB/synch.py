@@ -21,13 +21,10 @@ def synch_from_geonet():
 
     properties = tree.xpath('//div[@class="bx-user-properties"]')
 
-    for (name, post, image, properties) in zip(name, post, image_, properties):
+    for (name, post, image_, properties) in zip(name, post, image_, properties):
         post_user = post.text_content().strip()
 
-        try:
-            image = 'http://geonet:6448/'+re.search(r'src="(.*?)" ', html.tostring(image_, encoding='unicode')).group(1)
-        except:
-            image = ''
+        image = 'http://geonet:6448/'+re.search(r'src="(.*?)" ', html.tostring(image_, encoding='unicode')).group(1)
         mail = re.search(r'E-Mail: \n(.*?)\t', properties.text_content()).group(1)
         area = re.search(r'Подразделения: \n(.*?)\t', properties.text_content()).group(1)
 
