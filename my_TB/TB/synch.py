@@ -6,7 +6,8 @@ from pathlib import Path
 import requests
 from lxml import html
 import re
-import os
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 def synch_from_geonet():
     url = r'http://geonet:6448/company/structure.php?set_filter_structure=Y&structure_UF_DEPARTMENT=400&filter=Y&set_filter=Y'
@@ -16,20 +17,23 @@ def synch_from_geonet():
 
     name = tree.xpath('//div[@class="bx-user-name"]')
     post = tree.xpath('//div[@class="bx-user-post"]')
-    image = tree.xpath('//div[@class="bx-user-image"]')
+    image_ = tree.xpath('//div[@class="bx-user-image"]')
 
     properties = tree.xpath('//div[@class="bx-user-properties"]')
 
-    for (name, post, image, properties) in zip(name, post, image, properties):
+    for (name, post, image, properties) in zip(name, post, image_, properties):
         post_user = post.text_content().strip()
-        image = 'http://geonet:6448/'+re.search(r'src="(.*?)" ', html.tostring(image, encoding='unicode')).group(1)
+
+        try:
+            image = 'http://geonet:6448/'+re.search(r'src="(.*?)" ', html.tostring(image_, encoding='unicode')).group(1)
+        except:
+            image = ''
         mail = re.search(r'E-Mail: \n(.*?)\t', properties.text_content()).group(1)
         area = re.search(r'Подразделения: \n(.*?)\t', properties.text_content()).group(1)
 
         username = re.search(r'(.*?) (.*)', name.text_content().strip())
         last_name = username[1]
         first_name= username[2]
-
         phone = re.search(r'(Телефон: |Мобильный: )\n(.*?)\t', properties.text_content()).group(2).strip()
         phone = re.sub(r' |-| - ',  '', phone)
         if (phone[0] == '+'):
@@ -38,28 +42,26 @@ def synch_from_geonet():
         else:
             city_code = phone[2:5]
             phone = phone[6:14]
-
-        from django.conf import settings
+        r = requests.get(image)
+        path = settings.MEDIA_ROOT + '/{}'.format(image.split('/')[-1])
+        target = Path(path)
+        target.write_bytes(r.content)
+        prof = TBProfile(username = last_name,
+                         post = post_user,
+                         subdivisions = area,
+                         mail = mail,
+                         first_name = first_name,
+                         last_name = last_name,
+                         city_code = city_code,
+                         phone = phone,
+                         locaton=random_point())
+        prof.image = image.split('/')[-1]
         try:
-            r = requests.get(image)
-            path = settings.MEDIA_ROOT + '/{}'.format(image.split('/')[-1])
-            target = Path(path)
-            target.write_bytes(r.content)
-            prof = TBProfile(username = last_name,
-                             post = post_user,
-                             subdivisions = area,
-                             mail = mail,
-                             first_name = first_name,
-                             last_name = last_name,
-                             city_code = city_code,
-                             phone = phone,
-                             locaton=random_point())
-            prof.image = image.split('/')[-1]
+            TBProfile.objects.get(username = last_name).delete()
             prof.save()
-        except:
-            pass
-        finally:
-            pass
+        except ObjectDoesNotExist:
+            prof.save()
+
 
 def synch_from_ORISI():
     url = r'http://192.168.200.10:11111/'
@@ -75,10 +77,15 @@ def synch_from_ORISI():
             name = re.search(r'>(.*?)<', fields[0]).group(1).strip()
             repos = fields[4].strip()
             proj = Project(name=name, repos=repos)
+            try:
+                Project.objects.get(name=name).delete()
+                proj.save()
+            except ObjectDoesNotExist:
+                proj.save()
+
+
             develops = fields[5]
             develops = develops.split(',')
-            proj.save()
-
             for develop in develops:
                 try:
                     username = develop.strip().split(' ')

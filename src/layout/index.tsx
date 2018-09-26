@@ -317,6 +317,14 @@ export class LayOut extends React.Component<Props, State> {
 						}
 						</Modal>
 					</div>
+					<div className="form">
+						<button 
+							className="synch"
+							onClick={() => {axios.get('/synch/').then(res => location.reload())}}
+						> 
+							Synch 
+						</button>
+					</div>
 				</div>
 				<div className="right-content">
 					<div className="map" id="map"></div>
